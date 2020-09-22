@@ -1,0 +1,56 @@
+version: 2.1
+
+orbs:
+#  php: circleci/php@1.0.1
+  node: circleci/node@4.0.0
+
+workflows:
+  lint-and-test:
+    jobs:
+      - tests
+
+
+jobs:
+  tests:
+    machine:
+      image: ubuntu-1604:202007-01
+    steps:
+      - checkout
+      - run:
+          name: install stuff
+          command: |
+            sudo add-apt-repository ppa:ondrej/php
+            sudo apt-get update
+            sudo apt-get install php7.4 php-xml php-mbstring
+            sudo apt-get install curl
+            sudo curl -s https://getcomposer.org/installer | php
+            sudo mv composer.phar /usr/local/bin/composer
+      - run:
+          name: install composer packages
+          command: |
+            composer install
+#      - php/install-composer
+#      - php/install-packages
+      - restore_cache:
+          name: Restore node modules cache
+          key: node_modules-{{ checksum "package.json" }}
+      - node/install-packages:
+          cache-path: ~/project/node_modules
+          override-ci-command: npm install
+      - save_cache:
+          name: Save node modules cache
+          key: node_modules-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - run:
+          name: whats running on port 80
+          command: netstat -tulpn | grep :80
+      - run:
+          name: Start wp-cypress
+          command: npx wp-cypress start
+      - run:
+          name: Run functional tests
+          command: ./node_modules/cypress/bin/cypress run
+      - run: ./node_modules/cypress/bin/cypress run
+      - store_artifacts:
+          path: tests/functional/cypress/screenshots

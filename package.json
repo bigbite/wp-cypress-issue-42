@@ -1,0 +1,13 @@
+{
+  "name": "wp-cypress-circleci",
+  "version": "0.1.1",
+  "main": "Gruntfile.js",
+  "author": "",
+  "scripts": {},
+  "devDependencies": {
+    "cypress": "^4.5.0"
+  },
+  "dependencies": {
+    "@bigbite/wp-cypress": "git+https://github.com/bigbite/wp-cypress.git#feature/no-volumes"
+  }
+}
