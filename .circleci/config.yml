@@ -31,6 +31,8 @@ jobs:
           key: node_modules-{{ checksum "package.json" }}
           paths:
             - node_modules
+            - ~/.cache
+            - ~/.npm          
       - run:
           name: Start wp-cypress
           command: yarn run wp-cypress start --no-volumes
