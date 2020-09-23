@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-#  php: circleci/php@1.0.1
+  php: circleci/php@1.0.1
   node: circleci/node@4.0.0
 
 workflows:
@@ -12,25 +12,14 @@ workflows:
 
 jobs:
   tests:
-    machine:
-      image: ubuntu-1604:202007-01
+    executor: php/default
     steps:
+      - setup_remote_docker
       - checkout
-      - run:
-          name: install stuff
-          command: |
-            sudo add-apt-repository ppa:ondrej/php
-            sudo apt-get update
-            sudo apt-get install php7.4 php-xml php-mbstring
-            sudo apt-get install curl
-            sudo curl -s https://getcomposer.org/installer | php
-            sudo mv composer.phar /usr/local/bin/composer
-      - run:
-          name: install composer packages
-          command: |
-            composer install
-#      - php/install-composer
-#      - php/install-packages
+      - php/install-composer
+      - php/install-packages
+      - node/install:
+          install-yarn: true
       - restore_cache:
           name: Restore node modules cache
           key: node_modules-{{ checksum "package.json" }}
@@ -43,11 +32,8 @@ jobs:
           paths:
             - node_modules
       - run:
-          name: whats running on port 80
-          command: netstat -tulpn | grep :80
-      - run:
           name: Start wp-cypress
-          command: npx wp-cypress start
+          command: yarn run wp-cypress start
       - run:
           name: Run functional tests
           command: ./node_modules/cypress/bin/cypress run
