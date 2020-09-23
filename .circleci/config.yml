@@ -33,10 +33,7 @@ jobs:
             - node_modules
       - run:
           name: Start wp-cypress
-          command: yarn run wp-cypress start
+          command: yarn run wp-cypress start --no-volumes
       - run:
           name: Run functional tests
-          command: ./node_modules/cypress/bin/cypress run
-      - run: ./node_modules/cypress/bin/cypress run
-      - store_artifacts:
-          path: tests/functional/cypress/screenshots
+          command: yarn run cypress run
