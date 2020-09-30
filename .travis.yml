@@ -1,12 +1,21 @@
 language: php
-php:
-  - 7.3
+
+branches:
+  except:
+  - /^.*-built$/
+
 cache:
-  npm: true
+  apt: true
   yarn: true
   directories:
-  - "$HOME/.composer/cache/files"
-  - "$HOME/.cache"
+    - $HOME/.composer/cache/files
+    - $HOME/.yarn/node_modules
+    - node_modules
+
+matrix:
+  include:
+  - php: 7.1
+
 addons:
   apt:
     packages:
@@ -16,24 +25,20 @@ services:
   # For WP Cypress
   - docker
 
-branches:
-  except:
-  - /^.*-built$/
-jobs:
-  include:
-    - stage: "PR: Lint & Build"
-      if: type = pull_request
-      before_install:
-        - nvm install 12.18.3
-        - nvm use 12.18.3
-      install:
-        - yarn --frozen-lockfile
-      script:
-        # - ./private/bin/build_changes.sh
-        - yarn wp-cypress start
-        - yarn cypress run
-      after_failure:
-        - cat node_modules/@bigbite/wp-cypress/debug.log
-    - stage: "Build Branches"
-      if: type != pull_request AND branch IN (master, develop)
-      script: ./private/bin/create_build.sh
+before_script:
+  - composer global require dealerdirect/phpcodesniffer-composer-installer:0.5.0 wp-coding-standards/wpcs:2.1.1 automattic/vipwpcs:2.0.0
+
+install:
+  - nvm install 12.14.1
+  - cd $TRAVIS_BUILD_DIR
+  - yarn
+  - composer install
+
+script:
+  - set -e
+  - yarn -v
+  - yarn wp-cypress start
+  - yarn cypress run
+
+after_failure:
+  - cat node_modules/@bigbite/wp-cypress/debug.log
