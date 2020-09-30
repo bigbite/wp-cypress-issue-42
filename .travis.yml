@@ -1,0 +1,39 @@
+language: php
+php:
+  - 7.3
+cache:
+  npm: true
+  yarn: true
+  directories:
+  - "$HOME/.composer/cache/files"
+  - "$HOME/.cache"
+addons:
+  apt:
+    packages:
+      # Cypress Dependency
+      - libgconf-2-4
+services:
+  # For WP Cypress
+  - docker
+
+branches:
+  except:
+  - /^.*-built$/
+jobs:
+  include:
+    - stage: "PR: Lint & Build"
+      if: type = pull_request
+      before_install:
+        - nvm install 12.18.3
+        - nvm use 12.18.3
+      install:
+        - yarn --frozen-lockfile
+      script:
+        # - ./private/bin/build_changes.sh
+        - yarn wp-cypress start
+        - yarn cypress run
+      after_failure:
+        - cat node_modules/@bigbite/wp-cypress/debug.log
+    - stage: "Build Branches"
+      if: type != pull_request AND branch IN (master, develop)
+      script: ./private/bin/create_build.sh
